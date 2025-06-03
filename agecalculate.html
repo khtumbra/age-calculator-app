@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Enhanced background with a subtle gradient */
+            background: linear-gradient(135deg, #e0f2f7 0%, #c8e6f0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff; /* White card background */
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        input[type="date"] {
+            padding: 0.75rem 1rem;
+            border: 2px solid #cbd5e1; /* Light gray border */
+            border-radius: 0.75rem; /* Rounded input field */
+            width: 100%;
+            max-width: 300px;
+            font-size: 1rem;
+            color: #334155; /* Darker text for input */
+            transition: border-color 0.3s ease;
+            margin-left: auto; /* Center the input */
+            margin-right: auto; /* Center the input */
+            display: block; /* Ensure it takes full width within max-width */
+        }
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo focus color */
+        }
+        button {
+            background-color: #1a202c; /* Dark blue button */
+            color: white;
+            padding: 0.9rem 2.2rem; /* Slightly bigger padding */
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1.1rem; /* Slightly larger font */
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(26, 32, 44, 0.3); /* Button shadow matching dark blue */
+            width: 100%; /* Make button take full width */
+            max-width: 300px; /* Match input max-width */
+            margin-left: auto; /* Center the button */
+            margin-right: auto; /* Center the button */
+            display: block; /* Ensure it takes full width within max-width */
+        }
+        button:hover {
+            background-color: #2d3748; /* Darker blue on hover */
+            transform: translateY(-1px);
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e2e8f0; /* Dashed separator */
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-label {
+            font-weight: 600;
+            color: #475569; /* Slate gray for labels */
+        }
+        .result-value {
+            font-weight: 700;
+            color: #1e293b; /* Darker text for values */
+            font-size: 1.1rem;
+        }
+        .message-box {
+            background-color: #fee2e2; /* Light red for error */
+            color: #dc2626; /* Dark red text */
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            text-align: left;
+            display: none; /* Hidden by default */
+        }
+        .llm-output-box {
+            background-color: #f0f9ff; /* Light blue for LLM output */
+            border: 1px solid #bfdbfe; /* Blue border */
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            text-align: left;
+            font-size: 0.95rem;
+            color: #1e3a8a; /* Dark blue text */
+        }
+        .llm-output-box.loading {
+            color: #6b7280; /* Gray for loading text */
+            font-style: italic;
+        }
+        .llm-button {
+            background-color: #f97316; /* Orange button for LLM features */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);
+            margin-top: 1rem;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto; /* Center the button */
+            margin-right: auto; /* Center the button */
+            display: block; /* Ensure it takes full width within max-width */
+        }
+        .llm-button:hover {
+            background-color: #ea580c; /* Darker orange on hover */
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Age Calculator</h1>
+
+        <div class="mb-6">
+            <label for="birthDate" class="block text-gray-700 text-lg font-medium mb-2">Your Birth Date:</label>
+            <input type="date" id="birthDate" class="mb-4">
+
+            <label for="targetDate" class="block text-gray-700 text-lg font-medium mb-2">Calculate Age On (Optional):</label>
+            <input type="date" id="targetDate" class="mb-6"> <button onclick="calculateAge()">Calculate Age</button>
+        </div>
+
+        <div id="results" class="hidden text-left border border-gray-200 rounded-xl p-4 mt-6">
+            <div class="result-item">
+                <span class="result-label">Years:</span>
+                <span id="years" class="result-value">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Months:</span>
+                <span id="months" class="result-value">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Days:</span>
+                <span id="days" class="result-value">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Weeks:</span>
+                <span id="weeks" class="result-value">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Hours:</span>
+                <span id="hours" class="result-value">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Minutes:</span>
+                <span id="minutes" class="result-value">0</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Seconds:</span>
+                <span id="seconds" class="result-value">0</span>
+            </div>
+
+            <button class="llm-button mt-4" onclick="getLifeStageInsights()">✨ Get Life Stage Insights</button>
+            <div id="lifeStageOutput" class="llm-output-box hidden mt-4"></div>
+
+            <button class="llm-button mt-4" onclick="getBirthYearFact()">✨ Discover Your Birth Year Fact</button>
+            <div id="birthYearFactOutput" class="llm-output-box hidden mt-4"></div>
+        </div>
+
+        <div id="messageBox" class="message-box"></div>
+    </div>
+
+    <script>
+        let intervalId; // To store the interval ID for real-time updates
+        let currentBirthDate = null; // To store the birth date for LLM features
+        let currentCalculatedAgeInYears = 0; // Store the calculated age in years for LLM prompts
+
+        /**
+         * Displays a message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message ('error', 'success').
+         */
+        function showMessage(message, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = 'message-box'; // Reset classes
+            if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'text-red-700', 'block');
+            } else if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'text-green-700', 'block');
+            }
+            // Hide after 5 seconds
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        /**
+         * Hides the message box.
+         */
+        function hideMessage() {
+            document.getElementById('messageBox').classList.add('hidden');
+        }
+
+        /**
+         * Calculates and displays the age based on the provided birth date and an optional target date.
+         */
+        function calculateAge() {
+            hideMessage(); // Clear any previous messages
+            const birthDateInput = document.getElementById('birthDate').value;
+            const targetDateInput = document.getElementById('targetDate').value;
+            const resultsDiv = document.getElementById('results');
+
+            // Clear previous interval if any
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+
+            if (!birthDateInput) {
+                showMessage("Please enter your birth date.", "error");
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const birthDate = new Date(birthDateInput);
+            let calculationEndDate;
+
+            if (targetDateInput) {
+                calculationEndDate = new Date(targetDateInput);
+            } else {
+                calculationEndDate = new Date(); // Default to today if no target date
+            }
+
+            if (birthDate > calculationEndDate) {
+                showMessage("Birth date cannot be after the calculation date.", "error");
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            currentBirthDate = birthDate; // Store for LLM features
+
+            resultsDiv.classList.remove('hidden'); // Show results div
+
+            // Determine if seconds should tick (only if calculating until the current moment)
+            const isCalculatingUntilNow = !targetDateInput;
+
+            // Initial calculation
+            updateAgeDisplay(birthDate, calculationEndDate, isCalculatingUntilNow);
+
+            // Set up interval only if calculating until the current moment for real-time seconds
+            if (isCalculatingUntilNow) {
+                intervalId = setInterval(() => updateAgeDisplay(birthDate, new Date(), true), 1000);
+            }
+        }
+
+        /**
+         * Updates the age display with current values.
+         * @param {Date} birthDate - The user's birth date.
+         * @param {Date} endDateForCalculation - The date until which age is calculated.
+         * @param {boolean} isRealTimeSeconds - True if seconds should update in real-time.
+         */
+        function updateAgeDisplay(birthDate, endDateForCalculation, isRealTimeSeconds) {
+            let years = endDateForCalculation.getFullYear() - birthDate.getFullYear();
+            let months = endDateForCalculation.getMonth() - birthDate.getMonth();
+            let days = endDateForCalculation.getDate() - birthDate.getDate();
+
+            // Adjust for months and days
+            if (days < 0) {
+                months--;
+                // Get the number of days in the previous month relative to endDateForCalculation
+                const lastMonth = new Date(endDateForCalculation.getFullYear(), endDateForCalculation.getMonth(), 0);
+                days += lastMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            // Store the calculated years for LLM prompts
+            currentCalculatedAgeInYears = years;
+
+            let totalMilliseconds;
+            if (isRealTimeSeconds) {
+                // For real-time seconds, always use the current moment
+                totalMilliseconds = new Date().getTime() - birthDate.getTime();
+            } else {
+                // For static calculation, use the selected end date
+                totalMilliseconds = endDateForCalculation.getTime() - birthDate.getTime();
+            }
+
+            // Convert total milliseconds to other units
+            const seconds = Math.floor(totalMilliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const totalDays = Math.floor(hours / 24);
+            const weeks = Math.floor(totalDays / 7);
+
+            // Update the display elements, applying toLocaleString for numbers > 999
+            document.getElementById('years').textContent = years.toLocaleString();
+            document.getElementById('months').textContent = months.toLocaleString();
+            document.getElementById('days').textContent = days.toLocaleString();
+            document.getElementById('weeks').textContent = weeks.toLocaleString();
+            document.getElementById('hours').textContent = hours.toLocaleString();
+            document.getElementById('minutes').textContent = minutes.toLocaleString();
+            document.getElementById('seconds').textContent = seconds.toLocaleString();
+        }
+
+        /**
+         * Calls Gemini API to get life stage insights.
+         */
+        async function getLifeStageInsights() {
+            if (!currentBirthDate) {
+                showMessage("Please calculate your age first.", "error");
+                return;
+            }
+
+            // Use the stored calculated years
+            const yearsOld = currentCalculatedAgeInYears;
+            const outputDiv = document.getElementById('lifeStageOutput');
+            outputDiv.classList.remove('hidden');
+            outputDiv.textContent = "Generating insights...";
+            outputDiv.classList.add('loading');
+
+            const prompt = `Describe the typical characteristics and common experiences of a person who is ${yearsOld} years old, in a concise and encouraging way. Focus on general themes of that life stage. Keep it to 2-3 sentences.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Leave as empty string for Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    outputDiv.textContent = text;
+                } else {
+                    outputDiv.textContent = "Could not generate insights. Please try again.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API for life stage:", error);
+                outputDiv.textContent = "Error generating insights. Please try again.";
+            } finally {
+                outputDiv.classList.remove('loading');
+            }
+        }
+
+        /**
+         * Calls Gemini API to get a historical fact about the birth year.
+         */
+        async function getBirthYearFact() {
+            if (!currentBirthDate) {
+                showMessage("Please calculate your age first.", "error");
+                return;
+            }
+
+            const birthYear = currentBirthDate.getFullYear();
+            const outputDiv = document.getElementById('birthYearFactOutput');
+            outputDiv.classList.remove('hidden');
+            outputDiv.textContent = "Discovering fact...";
+            outputDiv.classList.add('loading');
+
+            const prompt = `Provide one interesting historical event or significant cultural trend that happened in the year ${birthYear}. Keep it concise and engaging, 1-2 sentences.`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Leave as empty string for Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    outputDiv.textContent = text;
+                } else {
+                    outputDiv.textContent = "Could not find a fact for this year. Please try again.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API for birth year fact:", error);
+                outputDiv.textContent = "Error finding fact. Please try again.";
+            } finally {
+                outputDiv.classList.remove('loading');
+            }
+        }
+
+        // Optional: Set a default date for easier testing (e.g., 20 years ago)
+        window.onload = () => {
+            const today = new Date();
+            const defaultBirthDate = new Date(today.getFullYear() - 20, today.getMonth(), today.getDate());
+            document.getElementById('birthDate').valueAsDate = defaultBirthDate;
+            // Set default target date to today
+            document.getElementById('targetDate').valueAsDate = today;
+        };
+    </script>
+</body>
+</html>
